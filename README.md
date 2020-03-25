@@ -26,6 +26,11 @@ pip install -r requirements.txt
 
 ## AasanJobs Website
 
+### To run the script to scrape Aasaan jobs
+Make sure you have created the virtual environment and installed all the requirements. Once this is done,
+
+```python aasaanjobs.py```
+
 Sample url for complete list of [Customer Care Jobs](https://www.aasaanjobs.com/s/customer-care-jobs/)
 
 Here's a single [job details page](https://www.aasaanjobs.com/job/customer-service-associate-479b29-in-ziphertech-621255-b21fb4-933edb-cc9be5/ae660dc2-9905-4cad-82dc-1dc6b9743e1c/)
