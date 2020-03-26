@@ -127,8 +127,7 @@ class Kirmi():
                     cached_response = self.cache.get(cache_key)
 
                     if cached_response:
-                        logger.debug(
-                            f"returning response from cache : {cache_key}")
+                        logger.debug("returning response from cache : {cache_key}")
                         return cached_response
 
                 if data is None:

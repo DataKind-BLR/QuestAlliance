@@ -57,8 +57,53 @@ def get_job_details(job_url):
     job_details['location'] = location.parent.parent.parent.find_all('div')[1].find('p').text
 
     # Additional Details
-    p_tags_ad = sections[1].div.div.div.find_all('p')
-    p_values_ad = [p.text for p in p_tags_ad]
+    # p_tags_ad = sections[1].div.div.div.find_all('p')
+    p_tags_ad = [s for s in sections[1].div.div.children if s != '\n']
+    # p_values_ad = [p.text for p in p_tags_ad]
+
+    # Level 1 - .row
+    for child1 in p_tags_ad:
+        child1_children = [s for s in child1.children if s != '\n']
+
+        # Level 2 - .p-bottom-sm
+        for child2 in child1_children:
+            child2_children = [s for s in child2.children if s != '\n']
+            
+            # Level 3 - .row
+            for child3 in child2_children:
+
+                # print(child3)
+                # print(type(child3))
+                # print(child3.strip(''))
+                # child3 = find_stripped(child3, ' ')
+                # print(child3)
+                # print('*******************')
+
+                if child3 != '\n' or child3.find(' ') != None:
+                    labels = child3.find_all('p', attrs={'class': re.compile(".*lighter")})
+                    values = child3.find_all('p', attrs={'class': re.compile(".*text-gray$")})
+
+                    try:
+                        if len(values) > 1:
+                            # merge them
+                            x = [v.text for v in values]
+                            vvvvvv = ','.join(x)
+
+                            job_details[labels[0].text] = vvvvvv
+                        else:
+                            job_details[labels[0].text] = values[0].text
+
+                    except:
+                        print('')
+
+                    print('-----------------------')
+                    print(labels)
+                    print('-----------------------')
+                    print(values)
+                    print('-----------------------')
+
+    import pdb
+    pdb.set_trace()
 
     if len(p_values_ad) % 2 != 0:
         ad = convert_list_to_dict(p_values_ad[:-1])
@@ -95,6 +140,12 @@ def convert_list_to_dict(lst):
     res_dct = {lst[i]: lst[i + 1] for i in range(0, len(lst), 2)}
     return res_dct
 
+# Helper function
+def find_stripped(soup, what):
+  found = soup.find(what)
+  if found is not None:
+    return found.text.strip()
+
 
 def process_job_url(jobs, job_category, number_of_pages):
     # get job details
@@ -123,7 +174,7 @@ def run_process():
 
     for job_category in job_categories:
         jobs = scraper.get_soup(website_baseurl + job_category["url"])
-        logger.debug("Getting job list for {}".format(job_category["category"]))
+        # logger.debug("Getting job list for {}".format(job_category["category"]))
 
         # Identify the number of jobs and pages
         number_of_jobs, number_of_pages = get_number_of_jobs(jobs)
