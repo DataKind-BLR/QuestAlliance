@@ -83,18 +83,6 @@ def get_job_details(job_url):
                     labels = child3.find_all('p', attrs={'class': re.compile(".*lighter")})
                     values = child3.find_all('p', attrs={'class': re.compile(".*text-gray$")})
 
-                    try:
-                        if len(values) > 1:
-                            # merge them
-                            x = [v.text for v in values]
-                            vvvvvv = ','.join(x)
-
-                            job_details[labels[0].text] = vvvvvv
-                        else:
-                            job_details[labels[0].text] = values[0].text
-
-                    except:
-                        print('')
 
                     print('-----------------------')
                     print(labels)
