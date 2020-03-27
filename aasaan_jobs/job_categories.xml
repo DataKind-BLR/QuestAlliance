@@ -3,7 +3,7 @@
     <categories>
         <!-- <job url="/s/bpo-jobs/" category='BPO'/> -->
         <!-- <job url="/s/customer-care-jobs/" category='Customer Care'/> -->
-        <job url="/s/sales-business-development-jobs/" category='Sales / Business Development'/>
+        <!-- <job url="/s/sales-business-development-jobs/" category='Sales / Business Development'/> -->
         <job url="/s/admin-executive-jobs/" category='Admin Executive'/>
         <job url="/s/electrician-jobs/" category='Electrician'/>
         <job url="/s/technician-jobs/" category='Technician'/>

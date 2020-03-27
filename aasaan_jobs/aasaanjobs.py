@@ -73,7 +73,9 @@ def get_job_details(job_url):
 
 
     print(job_details)
-    print('------------------------------------------------')        
+    print('------------------------------------------------')
+
+    ## TODO: Convert into dataframe & save it as CSV       
 
 
 # Helper function
