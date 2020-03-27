@@ -2,6 +2,7 @@ import logging
 import os
 import re
 import math
+import bs4
 from time import strptime
 from bs4 import BeautifulSoup
 from kirmi import Kirmi
@@ -57,70 +58,22 @@ def get_job_details(job_url):
     job_details['location'] = location.parent.parent.parent.find_all('div')[1].find('p').text
 
     # Additional Details
-    # p_tags_ad = sections[1].div.div.div.find_all('p')
-    p_tags_ad = [s for s in sections[1].div.div.children if s != '\n']
-    # p_values_ad = [p.text for p in p_tags_ad]
+    p_tags_ad = sections[1].div.div.children
 
-    # Level 1 - .row
-    for child1 in p_tags_ad:
-        child1_children = [s for s in child1.children if s != '\n']
+    for s in p_tags_ad:
+        if not isinstance(s, bs4.element.NavigableString):
 
-        # Level 2 - .p-bottom-sm
-        for child2 in child1_children:
-            child2_children = [s for s in child2.children if s != '\n']
-            
-            # Level 3 - .row
-            for child3 in child2_children:
+            s_children = remove_blanks(s.children)
+            c2_children = remove_blanks(s_children[1].children)
 
-                # print(child3)
-                # print(type(child3))
-                # print(child3.strip(''))
-                # child3 = find_stripped(child3, ' ')
-                # print(child3)
-                # print('*******************')
+            for c2c in c2_children:
+                c3 = remove_blanks(c2c.children)
+                key_values = list(map(lambda x:x.text.strip('\n'), c3))
+                job_details[key_values[0]] = key_values[1]
 
-                if child3 != '\n' or child3.find(' ') != None:
-                    labels = child3.find_all('p', attrs={'class': re.compile(".*lighter")})
-                    values = child3.find_all('p', attrs={'class': re.compile(".*text-gray$")})
-
-
-                    print('-----------------------')
-                    print(labels)
-                    print('-----------------------')
-                    print(values)
-                    print('-----------------------')
-
-    import pdb
-    pdb.set_trace()
-
-    if len(p_values_ad) % 2 != 0:
-        ad = convert_list_to_dict(p_values_ad[:-1])
-    else:
-        ad = convert_list_to_dict(p_values_ad)
-    
-    job_details.update(ad)
-
-
-    # Job Requirements
-    p_tags_jr = sections[2].div.div.div.find_all('p')
-    p_values_jr = [p.text for p in p_tags_jr]
-
-    if len(p_values_jr) % 2 != 0:
-        jr = convert_list_to_dict(p_values_jr[:-1])
-    else:
-        jr = convert_list_to_dict(p_values_jr)
-
-    job_details.update(jr)
-
-
-    # Job Description
-    p_tags_jd = sections[3].div.div.div.find_all('p')
-    p_values_jd = [p.text for p in p_tags_jd]
-
-    job_details['job_description'] = ''.join(p_values_jd)
 
     print(job_details)
-    print('\n----------------------------------\n')
+    print('------------------------------------------------')        
 
 
 # Helper function
@@ -134,6 +87,14 @@ def find_stripped(soup, what):
   if found is not None:
     return found.text.strip()
 
+
+def remove_blanks(children):
+    # will return a list of non-blank elements
+    s_children = []
+    for child in children:
+        if not isinstance(child, bs4.element.NavigableString):
+            s_children.append(child)
+    return s_children
 
 def process_job_url(jobs, job_category, number_of_pages):
     # get job details
