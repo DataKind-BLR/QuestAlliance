@@ -1,20 +1,42 @@
 import logging
-import os
 import re
+import os
 import math
 import bs4
-from time import strptime
 from bs4 import BeautifulSoup
+import pandas as pd
+
 from kirmi import Kirmi
-# import pandas as pd
 
 website_baseurl = 'https://www.aasaanjobs.com'
 
-# logging.basicConfig(level=logging.DEBUG)
-# logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 scraper = Kirmi(caching=True, cache_path="./aasan_cache.sqlite3")
-df_lst = []
+
+
+def save_to_csv(job_details_list, filename, page_num):
+
+    """
+    :param job_details_list: lst List of Job details dict
+    :param filename: str
+    :param page_num: int
+    :return:
+    """
+
+    logger.debug("Saving Job details list for {} - page {}".format(filename, str(page_num)))
+
+    df = pd.DataFrame(job_details_list)
+
+    filename = filename["category"].replace('/', "") + '.csv'
+
+    # if file does not exist write header
+    if not os.path.isfile(filename):
+        df.to_csv(filename, header='column_names', index=False, sep="|")
+    else:  # else it exists so append without writing the header
+        df.to_csv(filename, mode='a', header=False, index=False, sep="|")
+
 
 def get_job_categories(xml_path=None):
     """
@@ -35,79 +57,87 @@ def get_number_of_jobs(jobs):
 
         return int(number_of_jobs), number_of_pages
     except Exception:
-        print('')
-        # logger.error("Could not obtain number of pages or jobs")
+        logger.error("Could not obtain number of pages or jobs")
 
 
 
 def get_job_details(job_url):
-    soup = scraper.get_soup(website_baseurl + job_url)
+    try:
+        soup = scraper.get_soup(website_baseurl + job_url)
 
-    secs = soup.find('div', attrs={'id': 'job-details'})
-    sections = [s for s in secs if s != '\n']
-    job_details = dict()
+        secs = soup.find('div', attrs={'id': 'job-details'})
+        sections = [s for s in secs if s != '\n']
+        job_details = dict()
 
-    # Salary
-    job_details['salary_min'] = soup.find_all('span', attrs={'itemprop': 'minValue'})[0].text
-    job_details['salary_max'] = soup.find_all('span', attrs={'itemprop': 'maxValue'})[0].text
+        # Salary
+        job_details['salary_min'] = soup.find_all('span', attrs={'itemprop': 'minValue'})[0].text
+        job_details['salary_max'] = soup.find_all('span', attrs={'itemprop': 'maxValue'})[0].text
 
-    # Experience
-    job_exp = soup.find('img', attrs={'src': re.compile("https.*icon\-briefcase.*")})
-    job_details['experience'] = job_exp.parent.parent.parent.find_all('div')[-1].find('p').text
+        # Experience
+        job_exp = soup.find('img', attrs={'src': re.compile("https.*icon\-briefcase.*")})
+        job_details['experience'] = job_exp.parent.parent.parent.find_all('div')[-1].find('p').text
+        job_details['experience'] = re.sub(r'((\\n)|(\n))', " ", job_details['experience']).strip()
 
-    # Location
-    location = soup.find('img', attrs={'src': re.compile("https.*icon\-pin.*")})
-    job_details['location'] = location.parent.parent.parent.find_all('div')[1].find('p').text
+        # Location
+        location = soup.find('img', attrs={'src': re.compile("https.*icon\-pin.*")})
+        job_details['location'] = location.parent.parent.parent.find_all('div')[1].find('p').text
+        job_details['location'] = re.sub(r'((\\n)|(\n))', " ", job_details['location']).strip()
 
-    # Additional Details
-    p_tags_ad = sections[1].div.div.children
+        # Additional Details
+        p_tags_ad = sections[1].div.div.children
 
-    for s in p_tags_ad:
-        if not isinstance(s, bs4.element.NavigableString):
+        for s in p_tags_ad:
+            if not isinstance(s, bs4.element.NavigableString):
 
-            s_children = remove_blanks(s.children)
-            c2_children = remove_blanks(s_children[1].children)
+                s_children = remove_blanks(s.children)
+                c2_children = remove_blanks(s_children[1].children)
 
-            for c2c in c2_children:
-                c3 = remove_blanks(c2c.children)
-                key_values = list(map(lambda x:x.text.strip('\n'), c3))
-                job_details[key_values[0]] = key_values[1]
-
-
-
-    # Job Requirements
-    p_tags_jr = sections[2].div.div.children
-
-    for s in p_tags_jr:
-        if not isinstance(s, bs4.element.NavigableString):
-            s_children = remove_blanks(s.children)
-            c2_children = remove_blanks(s_children[1].children)
-
-            for c2c in c2_children:
-                c3 = remove_blanks(c2c.children)
-                key_values = list(map(lambda x:x.text.strip('\n'), c3))
-                job_details[key_values[0]] = key_values[1]
+                for c2c in c2_children:
+                    c3 = remove_blanks(c2c.children)
+                    key_values = list(map(lambda x:x.text.strip('\n'), c3))
+                    # Remove newline characters
+                    job_details[key_values[0]] = re.sub(r'((\\n)|(\n))', " ", key_values[1])
 
 
-    # Job Description
-    p_tags_jd = sections[2].div.div.children
 
-    for s in p_tags_jd:
-        if not isinstance(s, bs4.element.NavigableString):
-            s_children = remove_blanks(s.children)
-            c2_children = remove_blanks(s_children[1].children)
+        # Job Requirements
+        p_tags_jr = sections[2].div.div.children
 
-            for c2c in c2_children:
-                c3 = remove_blanks(c2c.children)
-                key_values = list(map(lambda x:x.text.strip('\n'), c3))
-                job_details[key_values[0]] = key_values[1]
+        for s in p_tags_jr:
+            if not isinstance(s, bs4.element.NavigableString):
+                s_children = remove_blanks(s.children)
+                c2_children = remove_blanks(s_children[1].children)
+
+                for c2c in c2_children:
+                    c3 = remove_blanks(c2c.children)
+                    key_values = list(map(lambda x:x.text.strip('\n'), c3))
+                    # Remove newline characters
+                    job_details[key_values[0]] = re.sub(r'((\\n)|(\n))', " ", key_values[1])
 
 
-    print(job_details)
-    print('------------------------------------------------')
+        # Job Description
+        p_tags_jd = sections[2].div.div.children
+
+        for s in p_tags_jd:
+            if not isinstance(s, bs4.element.NavigableString):
+                s_children = remove_blanks(s.children)
+                c2_children = remove_blanks(s_children[1].children)
+
+                for c2c in c2_children:
+                    c3 = remove_blanks(c2c.children)
+                    key_values = list(map(lambda x:x.text.strip('\n'), c3))
+                    # Remove newline characters
+                    job_details[key_values[0]] = re.sub(r'((\\n)|(\n))', " ", key_values[1])
+
+
+    except Exception:
+        logger.warning("Could not get job details for url {}".format(job_url))
+        with open('error.txt', 'a') as fd:
+            fd.write(f'\n{website_baseurl + job_url}')
+
+        return
+
     return job_details
-
-    ## TODO: Convert into dataframe & save it as CSV
 
 
 # Helper function
@@ -131,24 +161,42 @@ def remove_blanks(children):
     return s_children
 
 def process_job_url(jobs, job_category, number_of_pages):
+    """
+    :param jobs:
+    :param job_category:
+    :param number_of_pages:
+    :return:
+    """
     # get job details
 
     job_urls = jobs.find_all('div', attrs={'data-job-url': re.compile("\/job\/.*")})
 
+    job_details_list = []
+
     for j in job_urls:
         job_url = j['data-job-url']
-        jds = get_job_details(job_url)
+        job_details = get_job_details(job_url)
+        if job_details:
+            job_details_list.append(job_details)
 
-        if number_of_pages >= 2:
-            for i in range(2, number_of_pages + 1):
-                print(website_baseurl + job_category["url"] + "?page={}".format(i))
+    save_to_csv(job_details_list, job_category, 1)
+    job_details_list = []
 
-                jobs = scraper.get_soup(website_baseurl + job_category["url"] + "?page=" + str(i))
-                job_urls = jobs.find_all('div', attrs={'data-job-url': re.compile("\/job\/.*")})
+    if number_of_pages >= 2:
+        for i in range(2, number_of_pages + 1):
+            print(website_baseurl + job_category["url"] + "?page={}".format(i))
 
-                for j in job_urls:
-                    job_url = j['data-job-url']
-                    jds = get_job_details(job_url)
+            jobs = scraper.get_soup(website_baseurl + job_category["url"] + "?page=" + str(i))
+            job_urls = jobs.find_all('div', attrs={'data-job-url': re.compile("\/job\/.*")})
+
+            for j in job_urls:
+                job_url = j['data-job-url']
+                job_details = get_job_details(job_url)
+                if job_details:
+                    job_details_list.append(job_details)
+
+            save_to_csv(job_details_list, job_category, i)
+            job_details_list = []
 
 
 def run_process():
@@ -156,7 +204,7 @@ def run_process():
 
     for job_category in job_categories:
         jobs = scraper.get_soup(website_baseurl + job_category["url"])
-        # logger.debug("Getting job list for {}".format(job_category["category"]))
+        logger.debug("Getting job list for {}".format(job_category["category"]))
 
         # Identify the number of jobs and pages
         number_of_jobs, number_of_pages = get_number_of_jobs(jobs)
