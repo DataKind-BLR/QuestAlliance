@@ -148,7 +148,7 @@ def get_job_details(job_url):
     except Exception:
         logger.warning("Could not get job details for url {}".format(job_url))
         with open(error_path, 'a') as fd:
-            fd.write('\n{} + {}'.format(base_url, job_url))
+            fd.write('\n{} + {}'.format(website_baseurl, job_url))
 
         return
 
