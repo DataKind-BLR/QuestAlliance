@@ -1,6 +1,7 @@
 # Scraper helper functions and caching
 
 import logging
+import configparser
 import requests
 import time
 import json
@@ -9,7 +10,17 @@ import uuid
 
 from bs4 import BeautifulSoup
 
-logging.basicConfig(level=logging.DEBUG)
+config = configparser.ConfigParser()
+config.read('properties.ini')
+
+logname = config.get('aasaan', 'log_path')
+
+logging.basicConfig(filename=logname,
+                            filemode='a',
+                            format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
+                            datefmt='%H:%M:%S',
+                            level=logging.DEBUG)
+
 logger = logging.getLogger(__name__)
 
 
@@ -127,7 +138,7 @@ class Kirmi():
                     cached_response = self.cache.get(cache_key)
 
                     if cached_response:
-                        logger.debug("returning response from cache : {cache_key}")
+                        logger.debug("returning response from cache : {}".format(cache_key))
                         return cached_response
 
                 if data is None:
