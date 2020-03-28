@@ -5,10 +5,15 @@ Created on Fri Mar  6 22:42:51 2020
 @author: shass
 """
 
+#TODO: Make the code more modular
+#TODO: Add logger
+
 import pandas as pd
 from bs4 import BeautifulSoup
 from selenium import webdriver
 import time
+
+website_url = "https://www.kaam24.com/Jobs/jobs-in-India"
 
 def scroll_down(D):
     """A method for scrolling the page."""
@@ -34,34 +39,36 @@ def scroll_down(D):
         last_height = new_height
 
 driver = webdriver.Chrome()
-driver.get("https://www.kaam24.com/Jobs/jobs-in-India")
+driver.get(website_url)
 time.sleep(5)
 scroll_down(driver)
 
-#%%%%%%%%%%
-Jobheading=[]
-Position=[]
-Data=[]
+
+job_heading = []
+position = []
+data = []
 content = driver.page_source
 soup = BeautifulSoup(content)
-#%%%%%
+
 for a in soup.findAll('div',href=False, attrs={'class':'center-outer card'}):
-    JT=a.find('div', attrs={'class':'nameheading'})
-    P=a.find('div', attrs={'class':'namecat'})
-    L=a.find('div', attrs={'class':'secondouter'})
-    Jobheading.append(JT.text)
-    Position.append(P.text)
-    Data.append(L.text.split("\n"))
+    job_title = a.find('div', attrs={'class':'nameheading'})
+    position_ = a.find('div', attrs={'class':'namecat'})
+    L = a.find('div', attrs={'class':'secondouter'})
+    job_heading.append(job_title.text)
+    position.append(position_.text)
+    data.append(L.text.split("\n"))
+
+
 for a in soup.findAll('div',href=False, attrs={'class':'center-outer card ng-scope'}):
-    JT=a.find('div', attrs={'class':'nameheading'})
-    P=a.find('div', attrs={'class':'namecat'})
-    L=a.find('div', attrs={'class':'secondouter'})
-    Jobheading.append(JT.text)
-    Position.append(P.text)
-    Data.append(L.text.split("\n"))
+    job_title =a.find('div', attrs={'class':'nameheading'})
+    position_ =a.find('div', attrs={'class':'namecat'})
+    L = a.find('div', attrs={'class':'secondouter'})
+    job_heading.append(JT.text)
+    position.append(position_.text)
+    data.append(L.text.split("\n"))
 
-#%%%%%
-AllData=pd.DataFrame({'Job':Jobheading,'Position':Position,'Data':Data})
 
-# Blow line has been updated to have a unique CSV delimiter `|||`
-AllData.to_csv('kaam_24.csv', sep='|||', index=False)
+df=pd.DataFrame({'job':job_heading,'position':position,'data':data})
+
+# Below line has been updated to have a unique CSV delimiter `|||`
+df.to_csv('kaam_24.csv', sep='|||', index=False)
