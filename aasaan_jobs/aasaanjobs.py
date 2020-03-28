@@ -6,14 +6,15 @@ import bs4
 from time import strptime
 from bs4 import BeautifulSoup
 from kirmi import Kirmi
+# import pandas as pd
 
 website_baseurl = 'https://www.aasaanjobs.com'
 
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
+# logging.basicConfig(level=logging.DEBUG)
+# logger = logging.getLogger(__name__)
 
 scraper = Kirmi(caching=True, cache_path="./aasan_cache.sqlite3")
-
+df_lst = []
 
 def get_job_categories(xml_path=None):
     """
@@ -34,7 +35,8 @@ def get_number_of_jobs(jobs):
 
         return int(number_of_jobs), number_of_pages
     except Exception:
-        logger.error("Could not obtain number of pages or jobs")
+        print('')
+        # logger.error("Could not obtain number of pages or jobs")
 
 
 
@@ -72,10 +74,40 @@ def get_job_details(job_url):
                 job_details[key_values[0]] = key_values[1]
 
 
+
+    # Job Requirements
+    p_tags_jr = sections[2].div.div.children
+
+    for s in p_tags_jr:
+        if not isinstance(s, bs4.element.NavigableString):
+            s_children = remove_blanks(s.children)
+            c2_children = remove_blanks(s_children[1].children)
+
+            for c2c in c2_children:
+                c3 = remove_blanks(c2c.children)
+                key_values = list(map(lambda x:x.text.strip('\n'), c3))
+                job_details[key_values[0]] = key_values[1]
+
+
+    # Job Description
+    p_tags_jd = sections[2].div.div.children
+
+    for s in p_tags_jd:
+        if not isinstance(s, bs4.element.NavigableString):
+            s_children = remove_blanks(s.children)
+            c2_children = remove_blanks(s_children[1].children)
+
+            for c2c in c2_children:
+                c3 = remove_blanks(c2c.children)
+                key_values = list(map(lambda x:x.text.strip('\n'), c3))
+                job_details[key_values[0]] = key_values[1]
+
+
     print(job_details)
     print('------------------------------------------------')
+    return job_details
 
-    ## TODO: Convert into dataframe & save it as CSV       
+    ## TODO: Convert into dataframe & save it as CSV
 
 
 # Helper function
@@ -105,7 +137,7 @@ def process_job_url(jobs, job_category, number_of_pages):
 
     for j in job_urls:
         job_url = j['data-job-url']
-        get_job_details(job_url)
+        jds = get_job_details(job_url)
 
         if number_of_pages >= 2:
             for i in range(2, number_of_pages + 1):
@@ -116,12 +148,11 @@ def process_job_url(jobs, job_category, number_of_pages):
 
                 for j in job_urls:
                     job_url = j['data-job-url']
-                    get_job_details(job_url)
+                    jds = get_job_details(job_url)
 
 
 def run_process():
-    job_categories = get_job_categories(
-        xml_path='job_categories.xml')
+    job_categories = get_job_categories(xml_path='job_categories.xml')
 
     for job_category in job_categories:
         jobs = scraper.get_soup(website_baseurl + job_category["url"])
