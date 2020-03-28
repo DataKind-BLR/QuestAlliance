@@ -4,16 +4,31 @@ import os
 import math
 import bs4
 from bs4 import BeautifulSoup
+import configparser
 import pandas as pd
 
 from kirmi import Kirmi
 
+config = configparser.ConfigParser()
+config.read('properties.ini')
+
+cache_path = config.get('aasaan', 'cache_path')
+xml_path = config.get('aasaan', 'xml_path')
+logname = config.get('aasaan', 'log_path')
+error_path =config.get('aasaan', 'error_path')
+
 website_baseurl = 'https://www.aasaanjobs.com'
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(filename=logname,
+                            filemode='a',
+                            format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
+                            datefmt='%H:%M:%S',
+                            level=logging.DEBUG)
+
+logger = logging.getLogger(__name__)
 logger = logging.getLogger(__name__)
 
-scraper = Kirmi(caching=True, cache_path="./aasan_cache.sqlite3")
+scraper = Kirmi(caching=True, cache_path=cache_path)
 
 
 def save_to_csv(job_details_list, filename, page_num):
@@ -132,7 +147,7 @@ def get_job_details(job_url):
 
     except Exception:
         logger.warning("Could not get job details for url {}".format(job_url))
-        with open('error.txt', 'a') as fd:
+        with open(error_path, 'a') as fd:
             fd.write(f'\n{website_baseurl + job_url}')
 
         return
@@ -184,7 +199,7 @@ def process_job_url(jobs, job_category, number_of_pages):
 
     if number_of_pages >= 2:
         for i in range(2, number_of_pages + 1):
-            print(website_baseurl + job_category["url"] + "?page={}".format(i))
+            logger.debug(website_baseurl + job_category["url"] + "?page={}".format(i))
 
             jobs = scraper.get_soup(website_baseurl + job_category["url"] + "?page=" + str(i))
             job_urls = jobs.find_all('div', attrs={'data-job-url': re.compile("\/job\/.*")})
@@ -200,7 +215,7 @@ def process_job_url(jobs, job_category, number_of_pages):
 
 
 def run_process():
-    job_categories = get_job_categories(xml_path='job_categories.xml')
+    job_categories = get_job_categories(xml_path=xml_path)
 
     for job_category in job_categories:
         jobs = scraper.get_soup(website_baseurl + job_category["url"])
