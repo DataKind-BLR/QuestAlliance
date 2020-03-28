@@ -6,6 +6,7 @@ import bs4
 from time import strptime
 from bs4 import BeautifulSoup
 from kirmi import Kirmi
+import pandas as pd
 
 website_baseurl = 'https://www.aasaanjobs.com'
 
@@ -14,6 +15,7 @@ logger = logging.getLogger(__name__)
 
 scraper = Kirmi(caching=True, cache_path="./aasan_cache.sqlite3")
 
+scraped_data=[]
 
 def get_job_categories(xml_path=None):
     """
@@ -60,21 +62,26 @@ def get_job_details(job_url):
     # Additional Details
     p_tags_ad = sections[1].div.div.children
 
+    
     for s in p_tags_ad:
         if not isinstance(s, bs4.element.NavigableString):
 
             s_children = remove_blanks(s.children)
+            
             c2_children = remove_blanks(s_children[1].children)
-
+            
             for c2c in c2_children:
                 c3 = remove_blanks(c2c.children)
+                
                 key_values = list(map(lambda x:x.text.strip('\n'), c3))
+             
                 job_details[key_values[0]] = key_values[1]
 
 
     print(job_details)
     print('------------------------------------------------')
 
+    return job_details
     ## TODO: Convert into dataframe & save it as CSV       
 
 
@@ -85,9 +92,9 @@ def convert_list_to_dict(lst):
 
 # Helper function
 def find_stripped(soup, what):
-  found = soup.find(what)
-  if found is not None:
-    return found.text.strip()
+    found = soup.find(what)
+    if found is not None:
+        return found.text.strip()
 
 
 def remove_blanks(children):
@@ -105,7 +112,8 @@ def process_job_url(jobs, job_category, number_of_pages):
 
     for j in job_urls:
         job_url = j['data-job-url']
-        get_job_details(job_url)
+        details=get_job_details(job_url)
+        scraped_data.append([job_category['category'],details['salary_min'],details['salary_max'],details['experience'],details['location'],details['Job Type'] if "Job Type" in details.keys() else "",details['Shift Timings'] if "Shift Timings" in details.keys() else "",details['Working Days'] if "Working Days" in details.keys() else ""])
 
         if number_of_pages >= 2:
             for i in range(2, number_of_pages + 1):
@@ -116,14 +124,16 @@ def process_job_url(jobs, job_category, number_of_pages):
 
                 for j in job_urls:
                     job_url = j['data-job-url']
-                    get_job_details(job_url)
-
+                    details=get_job_details(job_url)
+                    scraped_data.append([job_category['category'],details['salary_min'],details['salary_max'],details['experience'],details['location'],details['Job Type'] if "Job Type" in details.keys() else "",details['Shift Timings'] if "Shift Timings" in details.keys() else "",details['Working Days'] if "Working Days" in details.keys() else ""])
 
 def run_process():
     job_categories = get_job_categories(
         xml_path='job_categories.xml')
 
     for job_category in job_categories:
+        
+        print(" hii",job_category["url"],job_category["category"])
         jobs = scraper.get_soup(website_baseurl + job_category["url"])
         # logger.debug("Getting job list for {}".format(job_category["category"]))
 
@@ -135,3 +145,7 @@ def run_process():
 
 if __name__ == "__main__":
     run_process()
+
+    scraped_data=pd.DataFrame(scraped_data)
+    scraped_data.columns=["Category","Salary Min","Salary Max","Experience","Location","Job Type","Shift Timings","Working Days"]
+    scraped_data.to_csv("scraped_data.csv")
