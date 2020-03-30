@@ -1,5 +1,15 @@
 # Quest Alliance
 
+Quest Alliance is a non-profit organization that equips young people with 21st century skills by enabling self-learning. The organization works on designing scalable solutions that enable educators to address critical gaps for quality education & skills training.
+
+Quest Alliance nodes / programs:
+1) MyQuest : Youth program at Quest Alliance. With as many as 4 million youngsters between the ages of 15 and 29 set to enter the workforce each year for the next two decades, there is a pressing need to direct efforts towards enabling them with skills to make them more future-ready. Working in 22 states, with 30 partners over 2.5L youth have been trained from 110 vactional training institutes & 360 industrial training institutes.
+
+2) Secondary School: Working with over 8 state govts for the next 3 years, Quest Alliance in association with IBM plans to work with 1200 government schools, 2L girls to create awareness about STEM education, critical thinking, gender awareness.
+
+3) Anandshala: Working mostly in the state of Bihar, with over 990 schools to prevent school drop-outs by working closely with the cluster resource personnel to strengthen the school management to ensure sustainability.
+
+4) Capacity building: Leads capacity building and training for educator professional development. 611 trainers graduated, 253 women trainers, 21 states and 108 organizations.
 
 create Virtual Env
 
