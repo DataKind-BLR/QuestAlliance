@@ -1,7 +1,20 @@
 # Quest Alliance
 
+This repository is contains job listing from
+* [Aasaanjobs](https://www.aasaanjobs.com/)
+* [Kaam24](https://www.kaam24.com/)
 
-create Virtual Env
+which has details for job listings
+
+
+## Data
+
+You can access and download the CSV files delimited by a `|` (pipe character) from the respective folders for Aasaanjobs and Kaam24.
+
+
+## Installation
+
+This is required only if you want to continue scraping on your local machine
 
 ```bash
 cd QuestAlliance
@@ -10,8 +23,8 @@ python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt 
 ```    
-    
-## Job Areas :
+
+## Job Areas
 
 * [Customer Care](https://www.aasaanjobs.com/s/customer-care-jobs/)
 * [BPO](https://www.aasaanjobs.com/s/customer-care-jobs/)
