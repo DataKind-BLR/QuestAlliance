@@ -1,3 +1,7 @@
+
+# Read the Wiki page for this project and repository first. 
+The [Wiki](https://github.com/DataKind-BLR/QuestAlliance/wiki) can be found here
+
 # Quest Alliance
 
 
