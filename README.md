@@ -4,8 +4,9 @@ The [Wiki](https://github.com/DataKind-BLR/QuestAlliance/wiki) can be found here
 
 # Quest Alliance
 
+NOTE: We are using **Python 3**.
 
-create Virtual Env
+Create a virtual environment as outlined below. 
 
 ```bash
 cd QuestAlliance
