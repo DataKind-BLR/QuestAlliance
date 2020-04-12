@@ -1,15 +1,15 @@
-import logging
-import re
-import os
-import math
-import bs4
-from bs4 import BeautifulSoup
 import configparser
-import pandas as pd
+import logging
+import math
+import os
+import re
 
-from lib.scraper_helper import Kirmi
+import bs4
+import pandas as pd
+from bs4 import BeautifulSoup
 
 from definitions import CONFIG_PATH
+from lib.scraper_helper import Kirmi
 
 config = configparser.ConfigParser()
 config.read(CONFIG_PATH)

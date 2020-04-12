@@ -17,8 +17,6 @@ from definitions import CONFIG_PATH
 config = configparser.ConfigParser()
 config.read(CONFIG_PATH)
 
-print(CONFIG_PATH)
-
 logname = os.path.join(tempfile.gettempdir(),
                        config.get('scraper', 'log_path'))
 
