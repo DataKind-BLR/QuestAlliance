@@ -1,15 +1,15 @@
 # Scraper helper functions and caching
 
-import logging
-import tempfile
 import configparser
-import os
-import requests
-import time
 import json
+import logging
+import os
 import sqlite3
+import tempfile
+import time
 import uuid
 
+import requests
 from bs4 import BeautifulSoup
 
 from definitions import CONFIG_PATH
