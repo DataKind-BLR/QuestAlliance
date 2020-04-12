@@ -13,7 +13,9 @@ cd QuestAlliance
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
-```    
+```  
+
+pep8 style guide :  https://www.python.org/dev/peps/pep-0008/  
     
 ## Job Areas :
 
