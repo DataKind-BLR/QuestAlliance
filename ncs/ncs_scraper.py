@@ -22,8 +22,7 @@ logname = config.get('ncs', 'log_path')
 error_path =config.get('ncs', 'error_path')
 
 #Karnataka
-website_baseurl='https://www.ncs.gov.in/Pages/ViewJobDetails.aspx?A=w1BcJXzB%2BW4%3D&U=&JSID=7uYU41Gnn8I%3D&RowId=7uYU41Gnn8I%3D&OJ='
-
+website_baseurl="https://www.ncs.gov.in/Pages/Search.aspx?lm=cUdiqrBi2j8aparMq6PhBK3hHroMgUqJlhvOWErxqp4%3D&OT=fheFJjl41aGWG85YSvGqng%3D%3D&Source=https://www.ncs.gov.in/&V=6gqhwycyVHE%3D"
 logging.basicConfig(filename=logname,
                             filemode='a',
                             format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
@@ -77,7 +76,6 @@ if __name__ == "__main__":
    panel_body = soup.find('div', class_='panel-body')
   
    basic_info = panel_body.find('div', attr={'class':"col-xs-9 col-md-10 paddingBottom5-Mobile"}) 
-   print('Basic info is {}'.format(type(basic_info)))
    scrape_basic_info(basic_info)
   
    details=panel_body.find_all('div', class_="lightGrayBG paddingTop10")
