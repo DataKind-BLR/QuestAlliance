@@ -9,8 +9,10 @@ import pandas as pd
 
 from lib.scraper_helper import Kirmi
 
+from definitions import CONFIG_PATH
+
 config = configparser.ConfigParser()
-config.read('properties.ini')
+config.read(CONFIG_PATH)
 
 cache_path = config.get('aasaan', 'cache_path')
 xml_path = config.get('aasaan', 'xml_path')
@@ -25,7 +27,6 @@ logging.basicConfig(filename=logname,
                             datefmt='%H:%M:%S',
                             level=logging.DEBUG)
 
-logger = logging.getLogger(__name__)
 logger = logging.getLogger(__name__)
 
 scraper = Kirmi(caching=True, cache_path=cache_path)
