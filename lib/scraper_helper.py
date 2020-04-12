@@ -12,19 +12,24 @@ import uuid
 
 from bs4 import BeautifulSoup
 
-config = configparser.ConfigParser()
-config.read('properties.ini')
+from definitions import CONFIG_PATH
 
-logname = os.path.join(tempfile.gettempdir(), config.get('scraper', 'log_path'))
+config = configparser.ConfigParser()
+config.read(CONFIG_PATH)
+
+print(CONFIG_PATH)
+
+logname = os.path.join(tempfile.gettempdir(),
+                       config.get('scraper', 'log_path'))
 
 if os.path.exists(logname):
     os.remove(logname)
 
 logging.basicConfig(filename=logname,
-                            filemode='a',
-                            format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
-                            datefmt='%H:%M:%S',
-                            level=logging.DEBUG)
+                    filemode='a',
+                    format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
+                    datefmt='%H:%M:%S',
+                    level=logging.DEBUG)
 
 logger = logging.getLogger(__name__)
 
@@ -97,9 +102,12 @@ class Kirmi():
         :param kwargs: caching (bool)
 
         """
-        self.retry_attempts = kwargs.pop('retry_attempts', config.get('scraper', 'retry_attempts'))
-        self.retry_sleep_time = kwargs.pop('retry_sleep_time', config.get('scraper', 'retry_sleep_time'))
-        self.timeout = kwargs.pop('timeout', config.get('scraper', 'timeout'))
+        self.retry_attempts = kwargs.pop('retry_attempts', int(
+            config.get('scraper', 'retry_attempts')))
+        self.retry_sleep_time = kwargs.pop('retry_sleep_time', int(
+            config.get('scraper', 'retry_sleep_time')))
+        self.timeout = kwargs.pop('timeout', int(
+            config.get('scraper', 'timeout')))
         self.parser = kwargs.pop('parser', 'html.parser')
         self.default_headers = kwargs.pop('default_headers', dict())
         self.proxies = kwargs.pop('proxies', None)
@@ -143,7 +151,8 @@ class Kirmi():
                     cached_response = self.cache.get(cache_key)
 
                     if cached_response:
-                        logger.debug("returning response from cache : {}".format(cache_key))
+                        logger.debug(
+                            "returning response from cache : {}".format(cache_key))
                         return cached_response
 
                 if data is None:
@@ -208,7 +217,7 @@ if __name__ == "__main__":
                'Content-Type': 'application/x-www-form-urlencoded'}
 
     scraper = Kirmi(default_headers=headers, caching=True,
-                  cache_path="/tmp/data.sqlite3")
+                    cache_path="/tmp/data.sqlite3")
 
     scraper.cache.clear()
 
