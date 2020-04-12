@@ -7,7 +7,7 @@ from bs4 import BeautifulSoup
 import configparser
 import pandas as pd
 
-from kirmi import Kirmi
+from lib.scraper_helper import Kirmi
 
 config = configparser.ConfigParser()
 config.read('properties.ini')
