@@ -1,14 +1,8 @@
 import configparser
+import json
 import logging
-import math
 import os
 import re
-
-import urllib.request
-import bs4
-import pandas as pd
-from bs4 import BeautifulSoup
-
 
 from definitions import CONFIG_PATH
 from lib.scraper_helper import Kirmi
@@ -17,12 +11,9 @@ config = configparser.ConfigParser()
 config.read(CONFIG_PATH)
 
 cache_path = config.get('ncs', 'cache_path')
-xml_path = config.get('ncs', 'xml_path')
 logname = config.get('ncs', 'log_path')
-error_path =config.get('ncs', 'error_path')
+error_path = config.get('ncs', 'error_path')
 
-#Karnataka
-website_baseurl="https://www.ncs.gov.in/Pages/Search.aspx?lm=cUdiqrBi2j8aparMq6PhBK3hHroMgUqJlhvOWErxqp4%3D&OT=fheFJjl41aGWG85YSvGqng%3D%3D&Source=https://www.ncs.gov.in/&V=6gqhwycyVHE%3D"
 logging.basicConfig(filename=logname,
                             filemode='a',
                             format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
@@ -31,59 +22,151 @@ logging.basicConfig(filename=logname,
 
 logger = logging.getLogger(__name__)
 
-scraper = Kirmi(caching=True, cache_path=cache_path)
+scraper = Kirmi(caching=True, cache_path=cache_path, timeout=3)
 
-# Empty dict to hold the scraped details
-job_details = {}
+website_baseurl="https://www.ncs.gov.in"
 
-user_agent='Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.0.7) Gecko/2009021910 Firefox/3.0.7'
-headers={'User-Agent':user_agent}
-def create_soup(url, header):
-    request=urllib.request.Request(url,None,header)
-    response=urllib.request.urlopen(request)
-    data=response.read()
-    soup=BeautifulSoup(data,"html.parser")
-    return soup
 
-#Part 1: Basic information
-def scrape_basic_info(basic_details):
-    print(basic_details)
-    for span in basic_details:
-        print('Span is {}'.format(span))
-        label=span['strong'].strip().replace(' ','_').lower()
-        job_details[label]=span['strong'].text()
+def clean_text(text):
+    text = re.sub('(\r|\n|\t)', ' ', text)
+    text = re.sub('\s+', ' ', text)
+    text = text.strip()
+    return text
 
-#Part 2: 
-def scrape_job_details(job_details):
-    details_rows=job_details.find_all('div', class_='row')
-    for row in details_rows:
-        title=row.find_all('label')[0].text().strip().replace(' ','_').lower()
-        value=row.find_all('label')[1].text()
-        job_details[title]=value
 
-#Part 3:
-def scrape_qualifications(quals):
-    qual_rows=quals.find_all('div',class_='row')
-    for row in qual_rows:
-        title=row.find_all('div', class_='row')
-        value=row.find_all('label')[1].text()
-        job_details[title] = value
+def get_state_urls():
+    """
+    :return: dict : URL for job listings by state
+    """
+
+    if os.path.exists('state_links.json'):
+        with open('state_links.json','r') as f:
+            state_urls = json.load(f)
+
+            return state_urls
+
+    soup = scraper.get_soup(website_baseurl)
+    urls = dict()
+    states = soup.findAll('span', attrs={'stateName'})
+
+    for state in states:
+        urls[state.get_text()] = state.find_parent('a')['href']
+
+    with open('state_links.json','w') as f:
+        f.write(json.dumps(urls, indent = 4, sort_keys = True))
+
+    return urls
+
+def get_job_urls(soup):
+
+    all_job_urls = soup.findAll('a', attrs={'onclick': re.compile('ViewJobPopup\(.*\)')})
+
+    all_job_urls_list = []
+
+    for element in all_job_urls:
+
+        job_url = element['onclick']
+
+        all_job_urls_list.append(re.search('.*(https\:.+)\'', job_url).group(1))
+
+    return list(set(all_job_urls_list))
+
+
+def get_landing_page_job_details(soup):
+    """
+    :param soup:
+    :return: list of dictionaries
+
+   {
+	'Company:':
+	'Job Location:':
+	'Salary:':
+	'Skill Required:':
+	'Job Description:':
+	}
+
+    """
+
+    job_details_list = []
+
+
+    for tab_soup in soup.findAll('div', attrs={'class' : re.compile('row padding0-15'), 'id': 'mytab'}):
+
+        job_details = dict()
+
+
+        try:
+
+            # Job URL
+            job_url = tab_soup.find('a', attrs={'onclick': re.compile('ViewJobPopup\(.*\)')})
+            job_url = job_url['onclick']
+            job_details['job_url'] = re.search('.*(https\:.+)\'', job_url).group(1)
+
+            job_details['posted_on'] = tab_soup.find_all('span', attrs={'class': 'text-muted pull-right'})[0].find_next().get_text()
+
+
+            # Job Details from landing page
+            text_info = tab_soup.find_all('span', attrs={'class': 'text-info'})
+
+        except Exception:
+            print("ERROR")
+
+
+        for txt in text_info:
+            job_details[clean_text(txt.get_text())] = clean_text(txt.find_next().get_text())
+
+        job_details_list.append(job_details)
+
+
+    return job_details_list
+
+
+def run_process():
+    state_urls = get_state_urls()
+
+    for state, state_url in state_urls.items():
+
+
+        print("starting scraping for state {}".format(state))
+
+        # State landing Page
+        soup = scraper.get_soup(state_url)
+
+        #TODO ADD Pagenation
+
+        job_details_list = get_landing_page_job_details(soup)
+
+        for job_dict in job_details_list:
+
+            job_url = job_dict['job_url']
+
+            soup = scraper.get_soup(job_url)
+
+            x = soup.findAll('label', attrs={'class': re.compile('control-label\scol-sm-\d{1,2}$')})
+
+            job_details = dict()
+
+            for y in x:
+
+                text_label = clean_text(y.get_text())
+                text_value = clean_text(y.find_next('label', attrs={'class': re.compile('control-label')}).get_text())
+
+                if text_label == text_value or text_label.strip() == "Job Location":
+                    continue
+
+                if text_label.replace("\s+", "").strip() != '' or text_value.replace("\s+", "").strip() != "":
+                    job_details[text_label] = text_value
+
+
+            # print(job_details)
+            # print(job_dict)
+            # print("\n\n\n")
+
+        print("completed scraping state {} \n\n".format(state))
+
 
 
 if __name__ == "__main__":
-   
-   soup=create_soup(website_baseurl,headers)   
-   panel_body = soup.find('div', class_='panel-body')
-  
-   basic_info = panel_body.find('div', attr={'class':"col-xs-9 col-md-10 paddingBottom5-Mobile"}) 
-   scrape_basic_info(basic_info)
-  
-   details=panel_body.find_all('div', class_="lightGrayBG paddingTop10")
-   scrape_basic_info(details)
+    run_process()
 
-   qualifications=panel_body.find_all('div')[3]
-   scrape_qualifications(qualifications)
-   
-   print(job_details)
- 
-  
+
