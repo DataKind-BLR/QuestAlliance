@@ -3,11 +3,11 @@
 The [Wiki](https://github.com/DataKind-BLR/QuestAlliance/wiki) can be found here
 
 
-##Development
+## Development
 Requires Python3 SQLite
 check requirements.txt
 
-##Initialization
+## Initialization
 
 create Virtual Env
 
@@ -28,7 +28,7 @@ pip install -r requirements.txt
 isort /PATH/TO/FILE.py
 ``` 
 
-3) Run autopep8 to make sure the code follows the pep8 style
+3) Run autopep8 to make sure the code follows the pep8 style <br>
 pep8 style guide :  https://www.python.org/dev/peps/pep-0008/  
 
 ```bash
