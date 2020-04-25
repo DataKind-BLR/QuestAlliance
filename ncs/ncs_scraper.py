@@ -3,16 +3,10 @@ import json
 import logging
 import os
 import re
-
-import sys
 import time
 
-from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
 from bs4 import BeautifulSoup
-
-
-sys.path.insert(1,'../')
+from selenium import webdriver
 
 from definitions import CONFIG_PATH
 from lib.scraper_helper import Kirmi
@@ -213,5 +207,3 @@ def run_process():
 
 if __name__ == "__main__":
     run_process()
-
-
