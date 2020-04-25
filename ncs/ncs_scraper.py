@@ -193,6 +193,15 @@ def get_job_details(job_dict):
 
     job_details = dict()
 
+    additional_details = soup.findAll(
+        'span', attrs={'class': 'topMargin10-Mobile displayBlock-xs'})
+    for info in additional_details:
+        detail = info.get_text()
+
+        if ':' in detail:
+            detail = detail.split(':')
+            job_details[clean_text(detail[0])] = clean_text(detail[-1])
+
     for y in x:
 
         text_label = clean_text(y.get_text())
@@ -217,6 +226,7 @@ def run_process():
 
         # State landing Page
         driver = webdriver.Chrome()
+
         driver.get(state_url)
 
         number_of_pages = get_number_of_pages(driver)
