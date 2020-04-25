@@ -2,8 +2,12 @@
 # Read the Wiki page for this project and repository first. 
 The [Wiki](https://github.com/DataKind-BLR/QuestAlliance/wiki) can be found here
 
-# Quest Alliance
 
+##Development
+Requires Python3 SQLite
+check requirements.txt
+
+##Initialization
 
 create Virtual Env
 
@@ -15,21 +19,25 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```  
 
-Before you create a pull request
+## Note on Patches/Pull Requests
 
-1) Run isort to alphabetically sort your imports
+1) Make your feature addition or bug fix.
+
+2) Run isort to alphabetically sort your imports
 ```bash
 isort /PATH/TO/FILE.py
 ``` 
 
-2) Run autopep8 to make sure the code follows the pep8 style
+3) Run autopep8 to make sure the code follows the pep8 style
 pep8 style guide :  https://www.python.org/dev/peps/pep-0008/  
 
 ```bash
 autopep8 --in-place /PATH/TO/FILE.py
 ``` 
 
-3) Add tests under QuestAlliance/test
+4) Add tests under QuestAlliance/test
+
+5) Send a pull request. Bonus points for topic branches!
 
 
 **Data Points**
