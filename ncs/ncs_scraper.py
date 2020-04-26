@@ -7,6 +7,7 @@ import time
 
 from bs4 import BeautifulSoup
 from selenium import webdriver
+import pandas as pd
 
 from definitions import CONFIG_PATH
 from lib.scraper_helper import Kirmi
@@ -40,6 +41,27 @@ def clean_text(text):
     text = re.sub('\s+', ' ', text)
     text = text.strip()
     return text
+
+
+def save_to_csv(job_details_list, state, page_num):
+    """
+    :param job_details_list: lst List of Job details dict
+    :param filename: str
+    :param page_num: int
+    :return:
+    """
+
+    df = pd.DataFrame(job_details_list)
+
+    filename = state + '_' + page_num + '.csv'
+    logger.debug(
+        "Saving Job details list for {} - page {}".format(filename, page_num))
+
+    # if file does not exist write header
+    if not os.path.isfile(filename):
+        df.to_csv(filename, header='column_names', index=False)
+    else:  # else it exists so append without writing the header
+        df.to_csv(filename, mode='a', header=False, index=False)
 
 
 def get_state_urls():
@@ -225,7 +247,7 @@ def run_process():
         logger.info("starting scraping for state {}".format(state))
 
         # State landing Page
-        driver = webdriver.Chrome()
+        driver = webdriver.Firefox()
 
         driver.get(state_url)
 
@@ -236,13 +258,15 @@ def run_process():
             logger.info("Fetching page {}".format(page))
 
             job_details_list = get_job_details_list_by_page(driver)
+            job_details_list_out = []
 
             for job_dict in job_details_list:
                 job_details = get_job_details(job_dict)
                 outdict = {**job_details, **job_dict}
 
-                print(outdict)
+                job_details_list_out.append(outdict)
 
+            save_to_csv(job_details_list_out, state, str(page))
             time.sleep(3)
         logger.info("completed scraping state {} \n\n".format(state))
 
