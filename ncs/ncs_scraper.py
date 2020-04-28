@@ -22,6 +22,7 @@ config.read(CONFIG_PATH)
 cache_path = config.get('ncs', 'cache_path')
 logname = config.get('ncs', 'log_path')
 error_path = config.get('ncs', 'error_path')
+website_baseurl = config.get('ncs', 'base_url')
 
 logging.basicConfig(filename=logname,
                     filemode='a',
@@ -33,7 +34,7 @@ logger = logging.getLogger(__name__)
 
 scraper = Kirmi(caching=True, cache_path=cache_path, timeout=3)
 
-website_baseurl = "https://www.ncs.gov.in"
+#website_baseurl = "https://www.ncs.gov.in"
 
 
 def clean_text(text):
@@ -254,12 +255,12 @@ def run_process(headless_flag=True):
         options = Options()
         options.headless = headless_flag
         if headless_flag:
-           logger.info('Headless mode enabled')
+            logger.info('Headless mode enabled')
         else:
-           logger.info('Headless mode disabled')
-	
-        exec_path=os.path.join(os.path.dirname(os.getcwd()),'geckodriver')
-        driver=webdriver.Firefox(options=options, executable_path=exec_path)
+            logger.info('Headless mode disabled')
+
+        exec_path = os.path.join(os.path.dirname(os.getcwd()), 'geckodriver')
+        driver = webdriver.Firefox(options=options, executable_path=exec_path)
 
         driver.get(state_url)
 
@@ -286,7 +287,9 @@ def run_process(headless_flag=True):
 
 
 if __name__ == "__main__":
-    parser = ap.ArgumentParser(description='Scraper to scrape data from the NCS gov website.')
-    parser.add_argument('-he', '--headless', help='Headless mode flag', action="store_true")
+    parser = ap.ArgumentParser(
+        description='Scraper to scrape data from the NCS gov website.')
+    parser.add_argument('-he', '--headless',
+                        help='Headless mode flag', action="store_true")
     mode = parser.parse_args()
     run_process(mode.headless)

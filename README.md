@@ -19,6 +19,7 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```  
 
+
 ## Note on Patches/Pull Requests
 
 1) Make your feature addition or bug fix.
@@ -39,6 +40,12 @@ autopep8 --in-place /PATH/TO/FILE.py
 
 5) Send a pull request. Bonus points for topic branches!
 
+## How to run the scraper script for the NCS website.
+1) Install the geckodriver executable for Firefox in the QuestAlliance folder
+2) Run the scraper using the following command
+```bash
+python ncs_scraper.py -he
+```
 
 **Data Points**
 
