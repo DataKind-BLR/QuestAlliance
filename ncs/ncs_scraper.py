@@ -34,8 +34,6 @@ logger = logging.getLogger(__name__)
 
 scraper = Kirmi(caching=True, cache_path=cache_path, timeout=3)
 
-#website_baseurl = "https://www.ncs.gov.in"
-
 
 def clean_text(text):
     """
