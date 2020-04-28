@@ -4,9 +4,13 @@ import logging
 import os
 import re
 import time
+import argparse as ap
+import sys
+sys.path.insert(0, os.path.dirname(os.getcwd()))
 
 from bs4 import BeautifulSoup
 from selenium import webdriver
+from selenium.webdriver.firefox.options import Options
 import pandas as pd
 
 from definitions import CONFIG_PATH
@@ -239,7 +243,7 @@ def get_job_details(job_dict):
     return job_details
 
 
-def run_process():
+def run_process(headless_flag=True):
     state_urls = get_state_urls()
 
     for state, state_url in state_urls.items():
@@ -247,7 +251,15 @@ def run_process():
         logger.info("starting scraping for state {}".format(state))
 
         # State landing Page
-        driver = webdriver.Firefox()
+        options = Options()
+        options.headless = headless_flag
+        if headless_flag:
+           logger.info('Headless mode enabled')
+        else:
+           logger.info('Headless mode disabled')
+	
+        exec_path=os.path.join(os.path.dirname(os.getcwd()),'geckodriver')
+        driver=webdriver.Firefox(options=options, executable_path=exec_path)
 
         driver.get(state_url)
 
@@ -274,4 +286,7 @@ def run_process():
 
 
 if __name__ == "__main__":
-    run_process()
+    parser = ap.ArgumentParser(description='Scraper to scrape data from the NCS gov website.')
+    parser.add_argument('-he', '--headless', help='Headless mode flag', action="store_true")
+    mode = parser.parse_args()
+    run_process(mode.headless)
