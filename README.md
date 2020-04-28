@@ -44,7 +44,7 @@ autopep8 --in-place /PATH/TO/FILE.py
 1) Install the geckodriver executable for Firefox in the QuestAlliance folder
 2) Run the scraper using the following command
 ```bash
-python ncs_scraper.py -he
+python ncs_scraper.py -f
 ``` 
 
 **Data Points**

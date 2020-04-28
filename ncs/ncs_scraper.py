@@ -287,7 +287,7 @@ def run_process(headless_flag=True):
 if __name__ == "__main__":
     parser = ap.ArgumentParser(
         description='Scraper to scrape data from the NCS gov website.')
-    parser.add_argument('-he', '--headless',
+    parser.add_argument('-f', '--headless',
                         help='Headless mode flag', action="store_true")
     mode = parser.parse_args()
     run_process(mode.headless)
