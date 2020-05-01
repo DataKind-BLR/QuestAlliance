@@ -47,6 +47,15 @@ autopep8 --in-place /PATH/TO/FILE.py
 python ncs_scraper.py -f
 ``` 
 
+The above option will run for all states. If you want to fetch data for specificstates, use the following command
+```bash
+python ncs_scraper.py -f --states <state_name_1> <state_name_2> ... <state_name_n>
+```
+where `<state_name_1>` is replaced by the name of a state. For example, to fetchdata for Karnataka and Punjab
+```bash
+python ncs_scraper.py -f --states Karnataka Punjab
+```
+
 **Data Points**
 
 - Salary        (amount range) / per month

@@ -67,7 +67,7 @@ def save_to_csv(job_details_list, state, page_num):
         df.to_csv(filename, mode='a', header=False, index=False)
 
 
-def get_state_urls():
+def get_state_urls(states_list=None):
     """
     :return: dict : URL for job listings by state
     """
@@ -242,8 +242,12 @@ def get_job_details(job_dict):
     return job_details
 
 
-def run_process(headless_flag=True):
-    state_urls = get_state_urls()
+def run_process(headless_flag=True, states_list=None):
+    state_urls = get_state_urls(states_list=None)
+    
+    #Keep only specific states
+    if states_list is not None:
+       state_urls = {state:state_urls[state] for state in state_urls if state in states_list}
 
     for state, state_url in state_urls.items():
 
@@ -283,11 +287,16 @@ def run_process(headless_flag=True):
 
         time.sleep(5)
 
+def convert(argument):
+    return [str(arg) for arg in argument.split(',')] 
 
 if __name__ == "__main__":
     parser = ap.ArgumentParser(
         description='Scraper to scrape data from the NCS gov website.')
     parser.add_argument('-f', '--headless',
                         help='Headless mode flag', action="store_true")
-    mode = parser.parse_args()
-    run_process(mode.headless)
+    parser.add_argument('--states', nargs='*', help='List of states to scrape data for', default=[])
+    args = parser.parse_args()
+    mode = args.headless
+    states_list = args.states
+    run_process(mode, states_list)
