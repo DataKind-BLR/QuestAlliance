@@ -4,9 +4,13 @@ import logging
 import os
 import re
 import time
+import argparse as ap
+import sys
+sys.path.insert(0, os.path.dirname(os.getcwd()))
 
 from bs4 import BeautifulSoup
 from selenium import webdriver
+from selenium.webdriver.firefox.options import Options
 import pandas as pd
 
 from definitions import CONFIG_PATH
@@ -18,6 +22,7 @@ config.read(CONFIG_PATH)
 cache_path = config.get('ncs', 'cache_path')
 logname = config.get('ncs', 'log_path')
 error_path = config.get('ncs', 'error_path')
+website_baseurl = config.get('ncs', 'base_url')
 
 logging.basicConfig(filename=logname,
                     filemode='a',
@@ -28,8 +33,6 @@ logging.basicConfig(filename=logname,
 logger = logging.getLogger(__name__)
 
 scraper = Kirmi(caching=True, cache_path=cache_path, timeout=3)
-
-website_baseurl = "https://www.ncs.gov.in"
 
 
 def clean_text(text):
@@ -64,7 +67,7 @@ def save_to_csv(job_details_list, state, page_num):
         df.to_csv(filename, mode='a', header=False, index=False)
 
 
-def get_state_urls():
+def get_state_urls(states_list=None):
     """
     :return: dict : URL for job listings by state
     """
@@ -239,15 +242,27 @@ def get_job_details(job_dict):
     return job_details
 
 
-def run_process():
-    state_urls = get_state_urls()
+def run_process(headless_flag=True, states_list=None):
+    state_urls = get_state_urls(states_list=None)
+    
+    #Keep only specific states
+    if states_list is not None:
+       state_urls = {state:state_urls[state] for state in state_urls if state in states_list}
 
     for state, state_url in state_urls.items():
 
         logger.info("starting scraping for state {}".format(state))
 
         # State landing Page
-        driver = webdriver.Firefox()
+        options = Options()
+        options.headless = headless_flag
+        if headless_flag:
+            logger.info('Headless mode enabled')
+        else:
+            logger.info('Headless mode disabled')
+
+        exec_path = os.path.join(os.path.dirname(os.getcwd()), 'geckodriver')
+        driver = webdriver.Firefox(options=options, executable_path=exec_path)
 
         driver.get(state_url)
 
@@ -272,6 +287,16 @@ def run_process():
 
         time.sleep(5)
 
+def convert(argument):
+    return [str(arg) for arg in argument.split(',')] 
 
 if __name__ == "__main__":
-    run_process()
+    parser = ap.ArgumentParser(
+        description='Scraper to scrape data from the NCS gov website.')
+    parser.add_argument('-f', '--headless',
+                        help='Headless mode flag', action="store_true")
+    parser.add_argument('--states', nargs='*', help='List of states to scrape data for', default=[])
+    args = parser.parse_args()
+    mode = args.headless
+    states_list = args.states
+    run_process(mode, states_list)

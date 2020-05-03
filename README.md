@@ -19,6 +19,7 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```  
 
+
 ## Note on Patches/Pull Requests
 
 1) Make your feature addition or bug fix.
@@ -39,6 +40,21 @@ autopep8 --in-place /PATH/TO/FILE.py
 
 5) Send a pull request. Bonus points for topic branches!
 
+## How to run the scraper script for the NCS website.
+1) Install the geckodriver executable for Firefox in the QuestAlliance folder
+2) Run the scraper using the following command
+```bash
+python ncs_scraper.py -f
+``` 
+
+The above option will run for all states. If you want to fetch data for specificstates, use the following command
+```bash
+python ncs_scraper.py -f --states <state_name_1> <state_name_2> ... <state_name_n>
+```
+where `<state_name_1>` is replaced by the name of a state. For example, to fetchdata for Karnataka and Punjab
+```bash
+python ncs_scraper.py -f --states Karnataka Punjab
+```
 
 **Data Points**
 
